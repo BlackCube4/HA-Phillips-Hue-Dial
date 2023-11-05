@@ -1,0 +1,420 @@
+blueprint:
+  source_url: https://github.com/BlackCube4/HA-IKEA-5-button-remote
+  name: ZHA - Phillips Hue Dial (double and triple clicks)
+  description: "Control everything with a Phillips Hue Dial.
+    Every button is fully customizable and can be double and triple clicked."
+  domain: automation
+  input:
+    remote:
+      name: Phillips Hue Dial
+      description: Select the remote you wish to use.
+      selector:
+        device:
+          filter:
+            - integration: zha
+              manufacturer: Signify Netherlands B.V.
+              model: RDM002
+    interval:
+      name: Max Interval between Clicks
+      description:
+        Maximum time interval between two clicks. Corresponds to the delay
+        from the last click to the triggering of the action.
+      default: 0.25
+      selector:
+        number:
+          min: 0.05
+          max: 2.0
+          unit_of_measurement: seconds
+          step: 0.01
+          mode: box
+    helper_entity:
+      name: (OPTIONAL) Helper
+      description: The number helper to store the value.
+      default:
+      selector:
+        entity:
+          domain: input_number
+    button_1_x1:
+      name: Button 1 - single click
+      description: Action to run on single button 1 click.
+      default: []
+      selector:
+        action: {}
+    button_1_x1_immediate:
+      name: Button 1 - single click (immediate response)
+      description: Action to run as soon as button 1 is clicked, without
+        waiting if there's a second click or not.
+      default: []
+      selector:
+        action: {}
+    button_1_x2:
+      name: Button 1 - double click
+      description: Action to run on double Button 1 click.
+      default: []
+      selector:
+        action: {}
+    button_1_x2_immediate:
+      name: Button 1 - double click (immediate response)
+      description: Action to run as soon as the Button 1 is clicked the second
+        time, without waiting if there's a third click or not.
+      default: []
+      selector:
+        action: {}
+    button_1_x3:
+      name: Button 1 - triple click
+      description: Action to run on triple Button 1 click.
+      default: []
+      selector:
+        action: {}
+    button_2_x1:
+      name: Button 2 - single click
+      description: Action to run on single button 2 click.
+      default: []
+      selector:
+        action: {}
+    button_2_x1_immediate:
+      name: Button 2 - single click (immediate response)
+      description: Action to run as soon as button 2 is clicked, without
+        waiting if there's a second click or not.
+      default: []
+      selector:
+        action: {}
+    button_2_x2:
+      name: Button 2 - double click
+      description: Action to run on double Button 2 click.
+      default: []
+      selector:
+        action: {}
+    button_2_x2_immediate:
+      name: Button 2 - double click (immediate response)
+      description: Action to run as soon as the Button 2 is clicked the second
+        time, without waiting if there's a third click or not.
+      default: []
+      selector:
+        action: {}
+    button_2_x3:
+      name: Button 2 - triple click
+      description: Action to run on triple Button 2 click.
+      default: []
+      selector:
+        action: {}
+    button_3_x1:
+      name: Button 3 - single click
+      description: Action to run on single button 3 click.
+      default: []
+      selector:
+        action: {}
+    button_3_x1_immediate:
+      name: Button 3 - single click (immediate response)
+      description: Action to run as soon as button 3 is clicked, without
+        waiting if there's a second click or not.
+      default: []
+      selector:
+        action: {}
+    button_3_x2:
+      name: Button 3 - double click
+      description: Action to run on double Button 3 click.
+      default: []
+      selector:
+        action: {}
+    button_3_x2_immediate:
+      name: Button 3 - double click (immediate response)
+      description: Action to run as soon as the Button 3 is clicked the second
+        time, without waiting if there's a third click or not.
+      default: []
+      selector:
+        action: {}
+    button_3_x3:
+      name: Button 3 - triple click
+      description: Action to run on triple Button 3 click.
+      default: []
+      selector:
+        action: {}
+    button_4_x1:
+      name: Button 4 - single click
+      description: Action to run on single button 4 click.
+      default: []
+      selector:
+        action: {}
+    button_4_x1_immediate:
+      name: Button 4 - single click (immediate response)
+      description: Action to run as soon as button 4 is clicked, without
+        waiting if there's a second click or not.
+      default: []
+      selector:
+        action: {}
+    button_4_x2:
+      name: Button 4 - double click
+      description: Action to run on double Button 4 click.
+      default: []
+      selector:
+        action: {}
+    button_4_x2_immediate:
+      name: Button 4 - double click (immediate response)
+      description: Action to run as soon as the Button 4 is clicked the second
+        time, without waiting if there's a third click or not.
+      default: []
+      selector:
+        action: {}
+    button_4_x3:
+      name: Button 4 - triple click
+      description: Action to run on triple Button 4 click.
+      default: []
+      selector:
+        action: {}
+    hold:
+      name: Hold
+      description: Action to run when holding any button.
+      default: []
+      selector:
+        action: {}
+    turn_clockwise:
+      name: Turn clockwise
+      description: Action to run when the dial gets rotated clockwise.
+      default: []
+      selector:
+        action: {}
+    turn_counterclockwise:
+      name: Turn counterclockwise
+      description: Action to run when the dial gets rotated counterclockwise.
+      default: []
+      selector:
+        action: {}
+
+###########################################
+#                 Start                   #
+###########################################
+
+mode: single
+max_exceeded: silent
+
+variables:
+  time: " {{ as_timestamp(now()) }} "
+  interval: !input interval
+  remote: !input remote
+
+trigger:
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+
+action:
+  - choose:
+      ####################################
+      #             Button 1             #
+      ####################################
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.params.scene_id == 1 }}"
+        sequence:
+          # Immediate 1x-Press button 1
+          - choose: []
+            default: !input button_1_x1_immediate
+          - wait_for_trigger:
+              - platform: event
+                event_type: zha_event
+                event_data:
+                  params:
+                    scene_id: 1
+            timeout: "{{interval}}"
+            continue_on_timeout: true
+          - if:
+              - condition: template
+                value_template: "{{(as_timestamp(now()) - time ) >= interval }}"
+            # 1x-Press button 1
+            then: !input button_1_x1
+            else:
+              - variables:
+                  time: " {{ as_timestamp(now()) }} "
+              # Immediate 2x-Press button 1
+              - choose: []
+                default: !input button_1_x2_immediate
+              - wait_for_trigger:
+                  - platform: event
+                    event_type: zha_event
+                    event_data:
+                      params:
+                        scene_id: 1
+                timeout: "{{interval}}"
+                continue_on_timeout: true
+              - if:
+                  - condition: template
+                    value_template: "{{(as_timestamp(now()) - time ) >= interval }}"
+                # 2x-Press button 1
+                then: !input button_1_x2
+                # 3x-Press button 1
+                else: !input button_1_x3
+
+      ####################################
+      #             Button 2             #
+      ####################################
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.params.scene_id == 0 }}"
+        sequence:
+          # Immediate 1x-Press button 2
+          - choose: []
+            default: !input button_2_x1_immediate
+          - wait_for_trigger:
+              - platform: event
+                event_type: zha_event
+                event_data:
+                  params:
+                    scene_id: 0
+            timeout: "{{interval}}"
+            continue_on_timeout: true
+          - if:
+              - condition: template
+                value_template: "{{(as_timestamp(now()) - time ) >= interval }}"
+            # 1x-Press button 2
+            then: !input button_2_x1
+            else:
+              - variables:
+                  time: " {{ as_timestamp(now()) }} "
+              # Immediate 2x-Press button 2
+              - choose: []
+                default: !input button_2_x2_immediate
+              - wait_for_trigger:
+                  - platform: event
+                    event_type: zha_event
+                    event_data:
+                      params:
+                        scene_id: 0
+                timeout: "{{interval}}"
+                continue_on_timeout: true
+              - if:
+                  - condition: template
+                    value_template: "{{(as_timestamp(now()) - time ) >= interval }}"
+                # 2x-Press button 2
+                then: !input button_2_x2
+                # 3x-Press button 2
+                else: !input button_2_x3
+
+      ####################################
+      #             Button 3             #
+      ####################################
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.params.scene_id == 5 }}"
+        sequence:
+          # Immediate 1x-Press button 3
+          - choose: []
+            default: !input button_3_x1_immediate
+          - wait_for_trigger:
+              - platform: event
+                event_type: zha_event
+                event_data:
+                  params:
+                    scene_id: 5
+            timeout: "{{interval}}"
+            continue_on_timeout: true
+          - if:
+              - condition: template
+                value_template: "{{(as_timestamp(now()) - time ) >= interval }}"
+            # 1x-Press button 3
+            then: !input button_3_x1
+            else:
+              - variables:
+                  time: " {{ as_timestamp(now()) }} "
+              # Immediate 2x-Press button 3
+              - choose: []
+                default: !input button_3_x2_immediate
+              - wait_for_trigger:
+                  - platform: event
+                    event_type: zha_event
+                    event_data:
+                      params:
+                        scene_id: 5
+                timeout: "{{interval}}"
+                continue_on_timeout: true
+              - if:
+                  - condition: template
+                    value_template: "{{(as_timestamp(now()) - time ) >= interval }}"
+                # 2x-Press button 3
+                then: !input button_3_x2
+                # 3x-Press button 3
+                else: !input button_3_x3
+
+      ####################################
+      #             Button 4             #
+      ####################################
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.params.scene_id == 4 }}"
+        sequence:
+          # Immediate 1x-Press button 4
+          - choose: []
+            default: !input button_4_x1_immediate
+          - wait_for_trigger:
+              - platform: event
+                event_type: zha_event
+                event_data:
+                  params:
+                    scene_id: 4
+            timeout: "{{interval}}"
+            continue_on_timeout: true
+          - if:
+              - condition: template
+                value_template: "{{(as_timestamp(now()) - time ) >= interval }}"
+            # 1x-Press button 4
+            then: !input button_4_x1
+            else:
+              - variables:
+                  time: " {{ as_timestamp(now()) }} "
+              # Immediate 2x-Press button 4
+              - choose: []
+                default: !input button_4_x2_immediate
+              - wait_for_trigger:
+                  - platform: event
+                    event_type: zha_event
+                    event_data:
+                      params:
+                        scene_id: 4
+                timeout: "{{interval}}"
+                continue_on_timeout: true
+              - if:
+                  - condition: template
+                    value_template: "{{(as_timestamp(now()) - time ) >= interval }}"
+                # 2x-Press button 4
+                then: !input button_4_x2
+                # 3x-Press button 4
+                else: !input button_4_x3
+
+      ####################################
+      #               Hold               #
+      ####################################
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.params.transition_time == 8 }}"
+        sequence: !input hold
+
+      ####################################
+      #         Turn clockwise           #
+      ####################################
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.params.step_mode == 0 }}"
+        sequence:
+          - service: input_number.set_value
+            data_template:
+              entity_id: !input helper_entity
+              value: "{{ ((trigger.event.data.params.step_size - 8)/6 + 1) | int }}"
+          - choose: []
+            default: !input turn_clockwise
+
+      ####################################
+      #      Turn counterclockwise       #
+      ####################################
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.params.transition_time != 8 }}"
+          - condition: template
+            value_template: "{{ trigger.event.data.params.step_mode == 1 }}"
+        sequence:
+          - service: input_number.set_value
+            data_template:
+              entity_id: !input helper_entity
+              value: "{{ (-((trigger.event.data.params.step_size - 8)/6 + 1)) | int }}"
+          - choose: []
+            default: !input turn_counterclockwise
